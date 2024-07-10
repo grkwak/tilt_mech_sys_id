@@ -1,4 +1,28 @@
-## Define profile components
+# using Dates: Millisecond
+
+function generate_time_series(signal_segments, interval_seconds::Float64)
+    concatenated_series = Float64[]
+    all_time_points = Float64[]
+    current_start_time_ms = 0 # Initialize start time of the first segment
+
+    for segment in signal_segments
+        duration_ms = round(Int, segment.duration * 1000) # Convert segment duration from seconds to milliseconds
+        end_time_ms = current_start_time_ms + duration_ms # Calculate end time of the current segment
+
+        # Create a range of milliseconds as integers
+        time_points_ms = current_start_time_ms:interval_seconds*1000:end_time_ms
+
+        # Convert milliseconds to seconds for storage and function calls
+        append!(all_time_points, [t / 1000 for t in time_points_ms])
+        for t in time_points_ms
+            signal_value = segment.function_ref(t / 1000 - current_start_time_ms / 1000; segment.parameters...) # Adjust time for function call
+            push!(concatenated_series, signal_value)
+        end
+
+        current_start_time_ms = end_time_ms # Update start time for the next segment
+    end
+    return all_time_points, concatenated_series
+end
 
 # Not used in Jason's profile
 function square(t; amplitude=1.0, frequency=1.0, offset=0.0)

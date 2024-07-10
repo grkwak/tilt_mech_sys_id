@@ -1,12 +1,20 @@
+using Plots
+
 include("profile_functions.jl") # Assuming this was done previously
 include("sweep_profile.jl")
 
-## Generate values
-t_end = 275.0
-t = 0.0:0.02:t_end
-θ = [jasons_profile(t_val, 0.0, 87.0) for t_val in t]
-plot(t, θ; ticks=:native)
+struct SignalSegment
+    duration::Float64
+    function_ref::Function
+    parameters::Dict{Symbol,Any}
+end
 
-# using DataFrames, CSV
-# df = DataFrame("time [s]" => t, "roll commanded [deg]" => θ)
-# CSV.write("sys_id.csv", df)
+# Example usage
+signal_segments = [
+    SignalSegment(10.0, sine, Dict(:amplitude => 0.0)),
+    SignalSegment(10.0, square_step, Dict(:step_size => 5.0, :frequency => 0.2)),
+    SignalSegment(10.0, sine, Dict(:amplitude => 0.0)),
+    SignalSegment(10.0, sine, Dict(:amplitude => 45.0))]
+
+time_points, concatenated_series = generate_time_series(signal_segments, 0.2)
+plot(time_points, concatenated_series, title="Timeseries of Angle Commands", xlabel="Time (s)", ylabel="Angle Command", legend=false)
