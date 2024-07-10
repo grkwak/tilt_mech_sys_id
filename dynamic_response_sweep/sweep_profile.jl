@@ -1,5 +1,5 @@
 using Plots, LinearAlgebra, Serialization, DataFrames
-include("profiles_functions.jl")
+include("profile_functions.jl")
 plotly()
 
 # import Pkg; Pkg.add("DataFrames")
@@ -33,11 +33,13 @@ end
 
 function jasons_profile(t, min_angle, max_angle)
 
+    profile_range = max_angle - min_angle
+
     profile_offset = min_angle + 45.0
     profile_scaling = (max_angle - min_angle) / 45.0
 
     t_h = 5.0 # hold time
-    t_square_step = 109.0 #49
+    t_square_step = max_angle - 5 # step time
     t_sine = 20.0
     t_sine_sweep_0 = 32.0
     t_sine_sweep_1 = 32.0
@@ -46,48 +48,78 @@ function jasons_profile(t, min_angle, max_angle)
     t_step = 39.9
 
     if t <= t_h # hold at 0 degrees
+
         return sine(t; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step # Step across range
         t_segment = t - t_h
+
         return square_step(t_segment; step_size=5.0, frequency=0.2)
+
     elseif t <= t_h + t_square_step + t_h
         t_segment = t - t_h - t_square_step
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine
         t_segment = t - t_h - t_square_step - t_h
+
         return sine(t_segment; amplitude=30.0, frequency=0.25, offset=profile_offset) # Sine wave (30 deg)
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h
         t_segment = t - t_h - t_square_step - t_h - t_sine
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h
+
         return sine_sweep(t_segment; amplitude=10.0, starting_frequency=0.25, ending_frequency=1.0, T=t_sine_sweep_0, type="linear", offset=profile_offset) # Sine sweep 0
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h
+
         return sine_sweep(t_segment; amplitude=10.0, starting_frequency=0.25, ending_frequency=4.0, T=t_sine_sweep_1, type="linear", offset=profile_offset)  # Sine sweep 1
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h + t_sine_sweep_2
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_h
+
         return sine_sweep(t_segment; amplitude=5.0, starting_frequency=0.25, ending_frequency=1.0, T=t_sine_sweep_2, type="linear", offset=profile_offset)  # Sine sweep 2
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h + t_sine_sweep_2 + t_h
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_sine_sweep_2
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h + t_sine_sweep_2 + t_h + t_sine_sweep_3
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_h - t_sine_sweep_2 - t_h
+
         return sine_sweep(t_segment; amplitude=5.0, starting_frequency=0.25, ending_frequency=4.0, T=t_sine_sweep_3, type="linear", offset=profile_offset)  # Sine sweep 3
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h + t_sine_sweep_2 + t_h + t_sine_sweep_3 + t_h
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_h - t_sine_sweep_2 - t_h - t_sine_sweep_3
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     elseif t <= t_h + t_square_step + t_h + t_sine + t_h + t_sine_sweep_0 + t_h + t_sine_sweep_1 + t_h + t_sine_sweep_2 + t_h + t_sine_sweep_3 + t_h + t_step
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_h - t_sine_sweep_2 - t_h - t_sine_sweep_3 - t_h
+
         return step(t_segment; step_size=5.0, frequency=0.25)
+
     else
         t_segment = t - t_h - t_square_step - t_h - t_sine - t_h - t_sine_sweep_0 - t_h - t_sine_sweep_1 - t_h - t_sine_sweep_2 - t_h - t_sine_sweep_3 - t_h - t_step
+
         return sine(t_segment; amplitude=0.0) # hold at 0 deg
+
     end
 end
